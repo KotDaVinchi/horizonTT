@@ -6,11 +6,25 @@ import {cellIndexes, getRandomColor, inRange} from "../common";
 
 import {ClientToServerEvents, ServerToClientEvents} from "../common/api.types";
 import {UserI} from "./db/models";
-import {CellIndex} from "../common/types";
-import {FIELD_HEIGHT, FIELD_WIDTH} from "../common/constants";
+import {CellIndex, User} from "../common/types";
+import {FIELD_HEIGHT, FIELD_WIDTH, TAKE_CALL_THROTTLE} from "../common/constants";
 
 export interface SocketData {
     user: UserI
+}
+
+const lastUserAttempt: {
+    takeCell: { [index: User["token"]]: number },
+} = {
+    takeCell: {}
+};
+
+function throttle(type: keyof typeof lastUserAttempt, key: User["token"], fn: () => void) {
+    const callTime = Date.now();
+    if (callTime - (lastUserAttempt[type][key] || 0) > TAKE_CALL_THROTTLE) {
+        lastUserAttempt[type][key] = callTime;
+        fn();
+    }
 }
 
 export default (io: IOServer<ClientToServerEvents, ServerToClientEvents, {}, SocketData>) => {
@@ -42,13 +56,15 @@ export default (io: IOServer<ClientToServerEvents, ServerToClientEvents, {}, Soc
         })
 
         socket.on('takeCell', async (cellIndex: CellIndex) => {
-            const indexes = cellIndexes(cellIndex);
-            if (
-                inRange(indexes[0], 0, FIELD_HEIGHT - 1) &&
-                inRange(indexes[1], 0, FIELD_WIDTH - 1)
-            ) {
-                await takeCell(cellIndex, socket.data.user._id);
-            }
+            throttle("takeCell", socket.data.user.token, async () => {
+                const indexes = cellIndexes(cellIndex);
+                if (
+                    inRange(indexes[0], 0, FIELD_HEIGHT - 1) &&
+                    inRange(indexes[1], 0, FIELD_WIDTH - 1)
+                ) {
+                    await takeCell(cellIndex, socket.data.user._id);
+                }
+            })
         })
     }
 }
