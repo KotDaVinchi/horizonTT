@@ -1,10 +1,26 @@
 import * as express from 'express';
-import apiRouter from './routes';
+import * as cookieParser from 'cookie-parser';
+import {createServer} from "http";
+import {dbConnect} from "./db";
+import {Server as IOServer} from "socket.io";
+
+import socketApi from './api';
+import {userMiddleware} from "./middlewares";
 
 const app = express();
+app.use(cookieParser());
 
+app.use(userMiddleware);
 app.use(express.static('public'));
-app.use(apiRouter);
+
+let server = createServer(app);
+const io = new IOServer(server, {
+    path: '/api/',
+    cookie: true,
+});
+io.on('connection', socketApi(io));
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => console.log(`Server listening on port: ${port}`));
+dbConnect().then(() => {
+    server.listen(port, () => console.log(`Server listening on port: ${port}`));
+})

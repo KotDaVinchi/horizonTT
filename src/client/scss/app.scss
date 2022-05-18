@@ -1,24 +1,32 @@
-// First override some or all individual color variables
-$primary: #25408f;
-$secondary: #8f5325;
-$success: #3e8d63;
-$info: #13101c;
-$warning: #945707;
-$danger: #d62518;
-$light: #f8f9fa;
-$dark: #343a40;
+.userStateLine {
+  cursor: pointer;
+}
 
-// Then add them to your custom theme-colors map, together with any additional colors you might need
-$theme-colors: (
-	primary: $primary,
-	secondary: $secondary,
-	success: $success,
-	info: $info,
-	warning: $warning,
-	danger: $danger,
-	light: $light,
-	dark: $dark,
-	// add any additional color below
-);
+.field {
+  border-collapse: collapse;
+  table-layout: fixed;
+}
 
-@import '../../../node_modules/bootstrap/scss/bootstrap.scss';
+.row {
+}
+
+$default-border-color: darkgray;
+$default-background-color: white;
+
+.ceil {
+  min-width: 7px;
+  max-width: 7px;
+  width: 7px;
+  min-height: 7px;
+  max-height: 7px;
+  height: 7px;
+  padding: 0;
+  background-color: $default-background-color;
+  border: 1px solid $default-border-color;
+  box-sizing: border-box;
+}
+
+.ceil:hover {
+  border: 2px solid var(--cursorColor, $default-border-color);
+  background-color: var(--cursorColor, $default-background-color);
+}
